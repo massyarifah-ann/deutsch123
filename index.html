@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MPI Bahasa Jerman - Hobbies und Freizeit</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#ecfdf5;color:#064e3b}
+.btn{background:#16a34a;color:#fff;font-weight:700;border-radius:14px;padding:.7rem 1.4rem;box-shadow:0 4px 0 #166534;transition:transform .15s,background .15s;cursor:pointer}
+.btn:hover{background:#22c55e;transform:translateY(-2px)}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.alt{background:#fff;color:#166534;border:2px solid #16a34a;box-shadow:0 4px 0 #86efac}
+.btn.alt:hover{background:#dcfce7}
+.btn.gold{background:#facc15;color:#14532d;box-shadow:0 4px 0 #a16207}
+.btn.gold:hover{background:#fde047}
+.btn:disabled{opacity:.4;pointer-events:none}
+.card{background:#fff;border-radius:18px;box-shadow:0 4px 16px #0001;padding:1.2rem}
+.pop{animation:pop .7s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.6) translateY(30px)}to{opacity:1;transform:none}}
+.fl{animation:fl 3s ease-in-out infinite}@keyframes fl{50%{transform:translateY(-10px)}}
+.ok{background:#bbf7d0!important}.no{background:#fecaca!important}
+.sel{background:#fde68a;outline:3px solid #facc15}
+.chip{background:#dcfce7;border:2px solid #16a34a;border-radius:10px;padding:.3rem .8rem;cursor:grab;font-weight:600;display:inline-block;margin:.2rem}
+.blank{display:inline-block;min-width:100px;border-bottom:3px dashed #16a34a;text-align:center;padding:0 .4rem;cursor:pointer}
+.w{cursor:pointer;padding:0 .25rem;border-radius:6px}
+@media print{#home,button{display:none!important}}
+</style>
+</head>
+<body>
+<button id="home" class="btn hidden fixed top-3 left-3 z-50 py-2 px-4" onclick="go('menu')">🏠 HOME</button>
+<div id="app"></div>
+
+<script>
+const $=s=>document.querySelector(s),app=$('#app');
+const DEV='Pengembang: Mas Annni S Syarifah, S.Pd. • 2026';
+// Tempel URL webhook (mis. Google Apps Script / Zapier) agar nilai dikirim otomatis ke lembar data:
+const SHEET_URL='';
+let A,M,mOn=true,vol=.5,name='',dp=0,mi=0,mt;
+const prog={1:1,2:1,3:1,4:1};
+const G={1:'Wort-Quiz',2:'Buchstaben-Salat',3:'Memory',4:'Richtig/Falsch'};
+
+/* ===== AUDIO ===== */
+function ac(){if(!A){A=new(window.AudioContext||window.webkitAudioContext)();M=A.createGain();M.gain.value=vol*.25;M.connect(A.destination)}if(A.state==='suspended')A.resume()}
+function sfx(f=660,d=.1,t='square'){if(!A)return;const o=A.createOscillator(),g=A.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(vol*.2,A.currentTime);g.gain.linearRampToValueAtTime(0,A.currentTime+d);o.connect(g);g.connect(A.destination);o.start();o.stop(A.currentTime+d)}
+const mel=[523,587,659,784,659,587,523,392,440,523,587,659,587,523,440,392];
+function music(){clearInterval(mt);if(!mOn||!A)return;mt=setInterval(()=>{const o=A.createOscillator(),g=A.createGain();o.type='triangle';o.frequency.value=mel[mi++%16];g.gain.setValueAtTime(1,A.currentTime);g.gain.linearRampToValueAtTime(0,A.currentTime+.35);o.connect(g);g.connect(M);o.start();o.stop(A.currentTime+.35)},380)}
+function tm(){mOn=!mOn;music();$('#mb').textContent=mOn?'🔊 Musik: ON':'🔇 Musik: OFF'}
+function sv(v){vol=+v;if(M)M.gain.value=vol*.25}
+document.addEventListener('click',e=>{if(e.target.closest('button'))sfx()});
+
+/* ===== DATA ===== */
+const V=[['lesen','membaca','Ich lese gern Romane.'],['schwimmen','berenang','Er schwimmt jeden Samstag.'],['Fußball spielen','bermain sepak bola','Wir spielen Fußball.'],['Musik hören','mendengarkan musik','Sie hört gern Musik.'],['kochen','memasak','Ich koche am Wochenende.'],['malen','melukis','Mein Bruder malt oft.'],['wandern','mendaki','Wir wandern in den Bergen.'],['tanzen','menari','Sie tanzt selten.'],['Gitarre spielen','bermain gitar','Ich spiele Gitarre.'],['ins Kino gehen','pergi ke bioskop','Ich gehe oft ins Kino.']];
+const D=[[['Lena','Hallo Tim! Was machst du in deiner Freizeit?','Halo Tim! Apa yang kamu lakukan di waktu luangmu?'],['Tim','Ich spiele gern Fußball und höre Musik.','Aku suka bermain sepak bola dan mendengarkan musik.']],
+[['Lena','Wie oft spielst du Fußball?','Seberapa sering kamu bermain sepak bola?'],['Tim','Ich spiele zweimal pro Woche. Und du?','Aku main dua kali seminggu. Kamu bagaimana?']],
+[['Lena','Am liebsten lese ich Bücher, aber ich tanze auch gern.','Yang paling kusuka membaca buku, tapi aku juga suka menari.'],['Tim','Toll! Dein Hobby ist wirklich interessant.','Keren! Hobimu sangat menarik.']]];
+const Q1=[[['Arti „schwimmen“?',['Berenang','Menari','Memasak'],0],['Arti „die Freizeit“?',['Pekerjaan','Waktu luang','Liburan'],1],['Arti „Musik hören“?',['Bermain musik','Mendengarkan musik','Menulis musik'],1]],
+[['Ich ___ gern Fußball.',['spiele','spielst','spielt'],0],['Er ___ gern Bücher.',['lese','liest','lesen'],1],['Wir ___ am Wochenende.',['wandert','wandere','wandern'],2]],
+[['Arti „Ich tanze lieber als ich koche.“',['Aku menari daripada memasak','Aku lebih suka menari daripada memasak','Aku tidak suka menari'],1],['Ich gehe ___ Kino.',['ins','im','am'],0],['„Am liebsten“ menyatakan...',['hobi paling disukai','hobi yang tidak disukai','hobi yang jarang'],0]]];
+const Q2=[[['LESEN','membaca'],['MALEN','melukis'],['TANZEN','menari']],[['KOCHEN','memasak'],['WANDERN','mendaki'],['MUSIK','musik']],[['FREIZEIT','waktu luang'],['GITARRE','gitar'],['SCHWIMMEN','berenang']]];
+const TF=(s,v)=>[s,['Richtig ✔','Falsch ✘'],v?0:1];
+const Q4=[[TF('„lesen“ berarti membaca.',1),TF('„schwimmen“ berarti menari.',0),TF('„Freizeit“ berarti waktu luang.',1)],
+[TF('„Ich spiele gern Gitarre“ benar secara tata bahasa.',1),TF('„Er lese gern“ benar secara tata bahasa.',0),TF('„nie“ berarti selalu.',0)],
+[TF('„Am liebsten“ menunjukkan kesukaan tertinggi.',1),TF('„Ich gehe in Kino“ adalah bentuk yang benar.',0),TF('Urutan frekuensi: nie < selten < oft < immer.',1)]];
+const SIM=[['d','Ich ___ gern Gitarre.',['spiele','gehe','lese'],'spiele'],['d','In meiner Freizeit ___ ich oft Romane.',['lese','schwimme','tanze'],'lese'],['d','Am Wochenende ___ wir in den Bergen.',['wandern','malen','kochen'],'wandern'],['d','Sie hört ___ Musik.',['gern','ins','mit'],'gern'],
+['m','Jawaban yang tepat untuk „Was machst du in deiner Freizeit?“',['Ich schwimme gern.','Ich bin müde.','Es ist Montag.'],0],['m','Arti „Ich gehe nie ins Kino.“',['Aku sering ke bioskop.','Aku tidak pernah ke bioskop.','Aku selalu ke bioskop.'],1],['m','Kata yang berarti paling sering:',['selten','manchmal','immer'],2],
+['k','kata kerja (Verb)','Mein Bruder spielt jeden Tag Fußball.','spielt'],['k','kata yang berarti „sering“','Ich tanze selten, aber ich male oft.','oft'],['k','kata yang menyatakan hobi paling disukai','Meine Schwester liest am liebsten Comics.','liebsten']];
+
+/* ===== NAVIGASI ===== */
+const S={};
+function go(s){$('#home').classList.toggle('hidden',s==='splash');app.innerHTML='';S[s]();scrollTo(0,0)}
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+S.splash=()=>app.innerHTML=`<div class="min-h-screen flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-green-400 to-green-700 text-white"><div class="text-7xl fl">⚽🎸📚</div><h1 class="pop text-5xl md:text-7xl font-black mt-4">Hobbies &amp; Freizeit</h1><p class="pop text-xl md:text-2xl mt-3" style="animation-delay:.3s">Media Pembelajaran Interaktif Bahasa Jerman • Kelas 12 SMA</p><button class="btn gold pop mt-8 text-2xl" style="animation-delay:.6s" onclick="ac();music();go('menu')">MULAI ▶</button><p class="mt-10 text-sm">${DEV}</p></div>`;
+
+S.menu=()=>app.innerHTML=`<div class="max-w-2xl mx-auto p-6 pt-20 text-center"><h2 class="text-4xl font-black pop">Menü</h2><div class="grid grid-cols-2 gap-4 mt-8">${[['beranda','🏠','BERANDA'],['materi','📖','MATERI'],['sim','🎯','SIMULASI'],['kuis','🎮','KUIS']].map(b=>`<button class="btn py-8 text-xl" onclick="go('${b[0]}')"><div class="text-4xl">${b[1]}</div>${b[2]}</button>`).join('')}</div><div class="card mt-8 text-left"><b>⚙ Pengaturan</b><div class="flex flex-wrap items-center gap-3 mt-3"><button class="btn alt" id="mb" onclick="tm()">${mOn?'🔊 Musik: ON':'🔇 Musik: OFF'}</button><label class="flex-1 flex items-center gap-2">Volume <input type="range" min="0" max="1" step=".05" value="${vol}" class="flex-1" oninput="sv(this.value)"></label></div></div><p class="mt-8 text-sm">${DEV}</p></div>`;
+
+S.beranda=()=>app.innerHTML=`<div class="max-w-2xl mx-auto p-6 pt-20"><div class="card"><h2 class="text-3xl font-black">🏠 Beranda</h2><p class="mt-3">Willkommen! Media ini membahas <b>Hobbies und Freizeit</b> (hobi dan waktu luang).</p><h3 class="font-bold mt-4">🎯 Tujuan Pembelajaran</h3><p>Siswa dapat menganalisis tentang hobi di waktu luang.</p><h3 class="font-bold mt-4">📋 Petunjuk</h3><ol class="list-decimal ml-6"><li>Pelajari <b>MATERI</b> (kosakata, tata bahasa, dialog).</li><li>Mainkan <b>KUIS</b>: 4 game, masing-masing 3 level.</li><li>Kerjakan <b>SIMULASI</b> 10 soal dan dapatkan sertifikat.</li></ol></div><p class="text-center text-sm mt-6">${DEV}</p></div>`;
+
+/* ===== MATERI ===== */
+S.materi=()=>{dp=0;tab(0)};
+function tab(i){const T=['Wortschatz','Grammatik','Dialog'];let c='';
+if(i==0)c=`<p class="mb-3 text-sm">Klik kartu untuk melihat arti dan contoh kalimat.</p><div class="grid grid-cols-2 gap-3">${V.map(v=>`<button class="btn alt text-left" onclick="this.querySelector('.r').classList.toggle('hidden')"><b>${v[0]}</b><div class="r hidden text-sm mt-1 font-normal">${v[1]}<br><i>${v[2]}</i></div></button>`).join('')}</div>`;
+else if(i==1)c=`<div class="space-y-3"><div><b>1. Pola kalimat</b><br>Ich + verb + <b>gern</b> + hobi → <i>Ich spiele gern Fußball.</i></div><div><b>2. Tingkat kesukaan</b><br>gern → lieber → am liebsten<br><i>Ich tanze gern, ich lese lieber, aber ich koche am liebsten.</i></div><div><b>3. Frekuensi (Häufigkeit)</b><br>nie – selten – manchmal – oft – immer</div><div><b>4. Pertanyaan</b><br><i>Was machst du in deiner Freizeit?</i> / <i>Wie oft spielst du Gitarre?</i></div><div><b>5. Analisis hobi</b><br>Bandingkan hobi: <i>Ich schwimme lieber, als ich wandere.</i> Lalu sebutkan alasan: <i>..., weil es mir Spaß macht.</i></div></div>`;
+else c=`<h3 class="font-bold mb-2">Seite ${dp+1}/3</h3>${D[dp].map(l=>`<div class="mb-3"><b>${l[0]}:</b> ${l[1]} <button class="btn alt ml-2 py-0 px-2 text-sm" onclick="this.nextElementSibling.classList.toggle('hidden')">🇮🇩</button><div class="hidden text-sm italic text-green-700">${l[2]}</div></div>`).join('')}<div class="flex justify-between mt-4"><button class="btn" ${dp?'':'disabled'} onclick="dp--;tab(2)">◀ Zurück</button><button class="btn" ${dp<2?'':'disabled'} onclick="dp++;tab(2)">Weiter ▶</button></div>`;
+app.innerHTML=`<div class="max-w-2xl mx-auto p-6 pt-20"><div class="flex gap-2 mb-4">${T.map((t,k)=>`<button class="btn ${k==i?'':'alt'} flex-1" onclick="tab(${k})">${t}</button>`).join('')}</div><div class="card">${c}</div></div>`}
+
+/* ===== PENJALAN SOAL ===== */
+function run(title,items,show,end){let i=0,sc=0;const step=()=>{if(i>=items.length)return end(sc,items.length);app.innerHTML=`<div class="max-w-xl mx-auto p-6 pt-20"><div class="flex justify-between font-bold"><span>${title}</span><span>${i+1}/${items.length} ⭐${sc}</span></div><div class="card mt-4" id="box"></div></div>`;show(items[i],ok=>{if(ok){sc++;sfx(880,.2,'triangle')}else sfx(200,.25,'sawtooth');setTimeout(()=>{i++;step()},900)},$('#box'))};step()}
+function mcShow(it,done,b){b.innerHTML=`<p class="text-xl font-bold mb-4">${it[0]}</p>`+it[1].map((o,k)=>`<button class="btn alt block w-full mb-2 text-left" data-k="${k}">${o}</button>`).join('');b.querySelectorAll('button').forEach(x=>x.onclick=()=>{const c=+x.dataset.k===it[2];b.querySelectorAll('button').forEach(y=>y.disabled=true);x.disabled=false;x.classList.add(c?'ok':'no');done(c)})}
+function scrShow(it,done,b){let s;do{s=[...it[0]].sort(()=>Math.random()-.5).join('')}while(s===it[0]);b.innerHTML=`<p class="text-sm">Susun huruf. Petunjuk: ${it[1]}</p><p class="text-4xl font-black tracking-widest my-4 text-center">${s}</p><input id="t" autocomplete="off" class="border-2 border-green-600 rounded-lg p-3 w-full text-xl uppercase" placeholder="Ketik jawaban"><button class="btn mt-3 w-full" id="ck">CEK</button>`;const t=$('#t');t.focus();const f=()=>{if(t.disabled)return;const c=t.value.trim().toUpperCase()===it[0];t.disabled=true;t.classList.add(c?'ok':'no');if(!c)t.value=it[0];done(c)};$('#ck').onclick=f;t.onkeydown=e=>{if(e.key==='Enter')f()}}
+function dragShow(it,d,b){const[,s,ws,a]=it;let sel=null,dn=false;b.innerHTML=`<p class="text-sm mb-2">Seret kata ke tempat kosong (atau ketuk kata, lalu ketuk kotak kosong).</p><p class="text-xl font-bold mb-4">${s.replace('___','<span class="blank" id="bl">&nbsp;</span>')}</p><div>${ws.map(w=>`<span class="chip" draggable="true">${w}</span>`).join('')}</div>`;const bl=$('#bl');const put=w=>{if(dn||!w)return;dn=true;bl.textContent=w;const c=w===a;bl.classList.add(c?'ok':'no');d(c)};b.querySelectorAll('.chip').forEach(c=>{c.ondragstart=e=>e.dataTransfer.setData('text',c.textContent);c.onclick=()=>{b.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');sel=c.textContent}});bl.onclick=()=>put(sel);bl.ondragover=e=>e.preventDefault();bl.ondrop=e=>{e.preventDefault();put(e.dataTransfer.getData('text'))}}
+function markShow(it,d,b){const[,q,s,a]=it;let sel=null;b.innerHTML=`<p class="text-sm mb-2">Tandai: <b>${q}</b></p><p class="text-xl font-bold mb-4">${s.split(' ').map(w=>`<span class="w">${w}</span>`).join(' ')}</p><button class="btn w-full" id="ck">CEK</button>`;const ws=b.querySelectorAll('.w');ws.forEach(w=>w.onclick=()=>{ws.forEach(x=>x.classList.remove('sel'));w.classList.add('sel');sel=w});$('#ck').onclick=()=>{if(!sel)return;$('#ck').disabled=true;const c=sel.textContent.replace(/[.,]/g,'')===a;sel.classList.remove('sel');sel.classList.add(c?'ok':'no');d(c)}}
+
+/* ===== KUIS ===== */
+S.kuis=()=>app.innerHTML=`<div class="max-w-xl mx-auto p-6 pt-20 text-center"><h2 class="text-3xl font-black">🎮 Kuis</h2><p class="mb-4">Pilih game. Selesaikan level untuk membuka level berikutnya.</p><div class="grid gap-3">${[[1,'❓','Pilihan ganda kosakata &amp; grammar'],[2,'🔤','Susun huruf menjadi kata'],[3,'🃏','Cocokkan kata &amp; arti'],[4,'✅','Tentukan pernyataan benar/salah']].map(g=>`<button class="btn text-left" onclick="lv(${g[0]})"><span class="text-3xl mr-2">${g[1]}</span>${G[g[0]]}<div class="text-sm font-normal">${g[2]}</div></button>`).join('')}</div></div>`;
+function lv(g){app.innerHTML=`<div class="max-w-xl mx-auto p-6 pt-20 text-center"><h2 class="text-3xl font-black">${G[g]}</h2><div class="grid gap-3 mt-6">${[1,2,3].map(l=>`<button class="btn" ${l>prog[g]?'disabled':''} onclick="play(${g},${l})">${l>prog[g]?'🔒':'⭐'} Level ${l}</button>`).join('')}</div><button class="btn alt mt-6" onclick="go('kuis')">◀ Game lain</button></div>`}
+function play(g,l){const t=`${G[g]} • Level ${l}`,e=(s,n)=>fin(g,l,s,n);if(g==1)run(t,Q1[l-1],mcShow,e);if(g==2)run(t,Q2[l-1],scrShow,e);if(g==3)mem(l);if(g==4)run(t,Q4[l-1],mcShow,e)}
+function fin(g,l,sc,n){const p=sc>=Math.ceil(n*.6);if(p){prog[g]=Math.max(prog[g],Math.min(l+1,3));[523,659,784,1047].forEach((f,i)=>setTimeout(()=>sfx(f,.2,'triangle'),i*120))}app.innerHTML=`<div class="max-w-md mx-auto p-6 pt-24 text-center"><div class="card pop"><div class="text-6xl">${p?'🎉':'💪'}</div><h2 class="text-2xl font-black mt-2">${p?'Sehr gut!':'Coba lagi!'}</h2><p class="my-2">Skor: ${sc}/${n}</p><div class="flex flex-col gap-2"><button class="btn" onclick="play(${g},${l})">ULANGI</button>${p&&l<3?`<button class="btn" onclick="play(${g},${l+1})">LEVEL BERIKUTNYA</button>`:''}<button class="btn alt" onclick="lv(${g})">DAFTAR LEVEL</button></div></div></div>`}
+function mem(l){const P=V.slice(0,[0,3,4,6][l]),C=[];P.forEach((p,k)=>C.push([k,p[0]],[k,p[1]]));C.sort(()=>Math.random()-.5);let o=[],f=0,m=0;app.innerHTML=`<div class="max-w-xl mx-auto p-6 pt-20"><p class="font-bold">Memory • Level ${l} • Langkah: <span id="mv">0</span></p><p class="text-sm mb-3">Cocokkan kata Jerman dengan artinya.</p><div class="grid grid-cols-3 gap-2" id="gr">${C.map(()=>`<button class="btn h-20 text-sm">?</button>`).join('')}</div></div>`;const B=document.querySelectorAll('#gr button');B.forEach((b,i)=>b.onclick=()=>{if(o.length>1||o.includes(i)||b.dataset.d)return;b.textContent=C[i][1];b.classList.add('alt');o.push(i);if(o.length==2){$('#mv').textContent=++m;const[x,y]=o;if(C[x][0]==C[y][0]){B[x].dataset.d=B[y].dataset.d=1;B[x].classList.add('ok');B[y].classList.add('ok');o=[];sfx(880,.2,'triangle');if(++f==P.length)setTimeout(()=>fin(3,l,P.length,P.length),700)}else setTimeout(()=>{[x,y].forEach(j=>{B[j].textContent='?';B[j].classList.remove('alt')});o=[]},800)}})}
+
+/* ===== SIMULASI & SERTIFIKAT ===== */
+S.sim=()=>{app.innerHTML=`<div class="max-w-md mx-auto p-6 pt-24"><div class="card text-center"><h2 class="text-2xl font-black">🎯 Simulasi (10 Soal)</h2><p class="my-2 text-sm">Masukkan namamu untuk sertifikat:</p><input id="nm" maxlength="40" autocomplete="off" class="border-2 border-green-600 rounded-lg p-3 w-full text-lg" placeholder="Nama lengkap"><button class="btn mt-4 w-full" id="go">MULAI SIMULASI</button></div></div>`;const n=$('#nm');n.focus();const s=()=>{name=n.value.trim();if(name.length<2){n.classList.add('no');return}run('Simulasi',SIM,(it,d,b)=>it[0]=='d'?dragShow(it,d,b):it[0]=='m'?mcShow(it.slice(1),d,b):markShow(it,d,b),cert)};$('#go').onclick=s;n.onkeydown=e=>{if(e.key==='Enter')s()}};
+function save(r){try{const a=JSON.parse(localStorage.getItem('mpi')||'[]');a.push(r);localStorage.setItem('mpi',JSON.stringify(a))}catch(e){}if(SHEET_URL)fetch(SHEET_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(r)}).catch(()=>{})}
+function csv(){let a=[];try{a=JSON.parse(localStorage.getItem('mpi')||'[]')}catch(e){}const t='Nama,Nilai,Tanggal\n'+a.map(r=>`"${r.n.replace(/"/g,'""')}",${r.s},${r.d}`).join('\n');const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));l.download='nilai-siswa.csv';l.click()}
+function cert(sc){save({n:name,s:sc*10,d:new Date().toISOString()});[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>sfx(f,.25,'triangle'),i*130));const d=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});app.innerHTML=`<div class="max-w-2xl mx-auto p-4 pt-20"><div class="card text-center border-8 border-double border-green-600 p-8 pop"><div class="text-5xl">🏅</div><h2 class="text-3xl font-black text-green-800">SERTIFIKAT PENCAPAIAN</h2><p class="mt-4">Diberikan kepada</p><p class="text-4xl font-black my-3 text-green-700 break-words">${esc(name)}</p><p>telah menyelesaikan simulasi <b>Hobbies und Freizeit</b><br>Bahasa Jerman Kelas 12 SMA</p><p class="text-3xl font-black my-3">Nilai: ${sc*10}</p><p class="text-sm">${d}</p><p class="mt-4 text-sm">${DEV}</p></div><div class="flex gap-2 justify-center mt-4 flex-wrap"><button class="btn" onclick="print()">🖨 CETAK</button><button class="btn alt" onclick="csv()">⬇ DATA CSV</button><button class="btn alt" onclick="go('menu')">MENU</button></div></div>`}
+
+go('splash');
+</script>
+</body>
+</html>
